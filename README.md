@@ -78,7 +78,7 @@ In the checklist page, you should have on top a search bar that enables to selec
 
 When the user is done, they can click on a "submit" button, and the checklist is saved.
 
-There should be some additional page where users see the list of checklists they have submitted, and where they can delete them, or go edit them (via the checklist page).  This "My Checklists" page can be implemented using a grid if you so like; just ensure that every checklist can be viewed and edited.
+There should be some additional page where users see the list of checklists they have submitted, and where they can delete them, or go edit them (via the checklist page).  This "My Checklists" page can be implemented using a grid if you so like; just ensure that every listed checklist links to the checklist page where it can be edited. 
 
 ## Location page
 
