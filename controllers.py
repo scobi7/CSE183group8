@@ -41,6 +41,11 @@ def index():
         my_callback_url = URL('my_callback', signer=url_signer),
     )
 
+@action('location')
+@action.uses('location.html', db, auth, url_signer)
+def location():
+    return dict()
+
 @action('my_callback')
 @action.uses() # Add here things like db, auth, etc.
 def my_callback():
