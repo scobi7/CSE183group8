@@ -4,28 +4,64 @@
   [v-cloak] {
        display: none;
   }
-  
+
   </style>
 
 
 <div class="section" id="app" v-cloak>
 
-  
-  <h1 class="title">Location</h1>
-  <!-- 1) A list of species seen in the region, with the number of checklists and total number of sightings for the region. -->
-  <!-- 2) Some kind of graph showing the number of birds in a species seen over time. 
-          For example, when one clicks on a species in the above list, such graph should be displayed. -->
-  <!-- 3) Some information on the top contributors for the region. -->
-  <div>Total Number of Sightings in this Region: ___</div>
-  <br>
-  <div class="columns is-multiline">
-    <div class="column is-one-quarter">List of Species in Region:
 
+  <h1 class="title">Location</h1>
+  
+  <div class="columns is-multiline">
+    <div class="column is-one-quarter">
+      
+      <div class="box">Get Detailed Sightings by Species:
+
+        <div class="dropdown" :class="{'is-active': dropdown_active}">
+          <div class="dropdown-trigger">
+            <button class="button is-info" aria-haspopup="true" aria-controls="dropdown-menu" @click="click_dropdown()">
+              <span>Select Bird</span>
+              <span class="icon is-small">
+                <i class="fa fa-angle-down" aria-hidden="true"></i>
+              </span>
+            </button>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu" role="menu">
+            <div class="dropdown-content" v-for="(b, b_idx) in bird_list">
+              <a class="dropdown-item" @click="select_bird(b_idx)">{{b.species}}</a>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="box">Total Number of Sightings in this Region: {{total_sightings}}</div>
 
 
     </div>
-    <div class="box column is-half"><canvas ref="speciesChart"></canvas></div>
-    <div class="column is-one-quarter">Top Contributors:
+    <div class="column is-half">
+      <div class="box"><canvas ref="speciesChart"></canvas></div>
+      
+    </div>
+    <div class="column is-one-quarter">
+      <div class="box">        
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Contributions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="c in topContributors"><td>{{c.name}}</td><td>{{c.contributeCount}}</td></tr>
+          </tbody>
+
+        </table>
+
+      </div>
 
 
 
@@ -37,6 +73,8 @@
 
   <div>
     <button class="button is-success" @click="make_chart()">testing button (make chart appear)</button>
+    <button class="button is-primary" @click="test_button()">test button 1</button>
+    <button class="button is-link" @click="test_button2()">test button 2</button>
   </div>
 
 
