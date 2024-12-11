@@ -4,6 +4,10 @@
   [v-cloak] {
        display: none;
   }
+  .dropdown-menu {
+  max-height: 15em;
+  overflow: scroll;
+  }
 
   </style>
 
@@ -11,11 +15,15 @@
 <div class="section" id="app" v-cloak>
 
 
-  <h1 class="title">Location</h1>
+  <h1 class="title">Regional Data<span v-if="active_species"> ({{active_species}})</span></h1>
   
   <div class="columns is-multiline">
     <div class="column is-one-quarter">
       
+      <div class="box">Total Number of Sightings in this Region: {{total_sightings}}</div>
+
+      <div class="box">Number of Checklists with Entries in this Region: {{total_checklists}}</div>
+
       <div class="box">Get Detailed Sightings by Species:
 
         <div class="dropdown" :class="{'is-active': dropdown_active}">
@@ -38,9 +46,7 @@
       </div>
 
 
-      <div class="box">Total Number of Sightings in this Region: {{total_sightings}}</div>
-
-      <div class="box">Number of Checklists with Entries in this Region: {{total_checklists}}</div>
+      
 
 
     </div>
@@ -87,7 +93,7 @@
 
 [[block page_scripts]]
 <script>
-
+  let get_location_data_url = "[[=XML(get_location_data_url)]]";
 </script>
 
 

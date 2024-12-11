@@ -7,11 +7,15 @@ app.data = {
     data: function() {
         return {
             chart: undefined,
+
             chart_data: [12, 19, 3, 5, 2, 3], //TODO change based on species selected
             chart_labels: ['day 1?', 'day 2', 'day 3', 'day 4', 'day 5', 'day 6'], //change
 
-            bird_list: [{species: "bluejay", count: 10}, {species: "sparrow", count: 20}],  //not final structure
+            bird_list: [{species: "White-crowned Sparrow", "day": "2024-01-02", count: 10}, {species: "Song Sparrow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}],  //dummy variables for testing
             top_contributors: [{name: "guy", contributions: 5}, {name: "person", contributions: 2}], //not final structure
+
+            sightings: [],
+            checklist: [],
 
             total_sightings: 0,
             total_checklists: 0,
@@ -23,8 +27,8 @@ app.data = {
             x2: 0,
             y2: 0,
 
-            dropdown_active: false,
-            active_species: null,
+            dropdown_active: false, // dropdown to appear or not
+            active_species: null, // true/false for selected bird in dropdown
         };
     },
     methods: {        
@@ -36,6 +40,17 @@ app.data = {
 
         // TODO need to fetch some information on top contributors for the Selected Region. (maybe total # of contributions)
 
+
+        get_sightings: function() {
+            let self = this;
+            axios.post(get_location_data_url, {
+
+            }).then(function (r) {
+                //self.sightings = r.data.sightings;
+                //self.checklist = r.data.checklist;
+                //somehow get region coordinates
+            });
+        },
 
         /********************
          * Draws a graph using chart.js depending on which bird is selected by user.
@@ -85,11 +100,16 @@ app.data = {
          ********************/
         select_bird: function(bird) {
             this.dropdown_active = false;
-
             this.active_species = bird.species;
 
-            //TODO switch the selected bird and update graph
-            //bird = {species: "name", count: number, }
+
+            let self = this;
+            axios.post(get_location_data_url, {
+            }).then(function (r) {
+                self.bird_list=r.data.location_data;
+            });
+
+            this.chart_data 
 
             this.make_chart(); //need to pass in chart_data and chart_labels but with bird specific data
         },
@@ -104,7 +124,12 @@ app.data = {
 
         //temp function
         test_button2: function() {
-            
+            let self = this;
+            axios.post(get_location_data_url, {
+
+            }).then(function (r) {
+                self.bird_list=r.data.location_data;
+            });
         },
     }
 
@@ -114,16 +139,10 @@ app.data = {
 app.vue = Vue.createApp(app.data).mount("#app");
 
 app.load_data = function () {
-    //axios.get(my_callback_url).then(function (r) {
-    //    app.vue.my_value = r.data.my_value;
-
-    //TODO Load user selected coordinates
-
-    //TODO Load species
-
-    //TODO Load checklists
-
-    //});
+    axios.get(get_location_data_url).then(function (r) {
+        app.vue.chart_data = r.data.location_data["count"];
+        app.vue.chart_labels = r.data.location_data["day"];
+    });
 
 
 }
