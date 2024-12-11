@@ -29,7 +29,7 @@
           </div>
           <div class="dropdown-menu" id="dropdown-menu" role="menu">
             <div class="dropdown-content" v-for="(b, b_idx) in bird_list">
-              <a class="dropdown-item" @click="select_bird(b_idx)">{{b.species}}</a>
+              <a class="dropdown-item" :class="{'is-active': b.species === active_species}" @click="select_bird(b)">{{b.species}}</a>
 
             </div>
           </div>
@@ -39,6 +39,8 @@
 
 
       <div class="box">Total Number of Sightings in this Region: {{total_sightings}}</div>
+
+      <div class="box">Number of Checklists with Entries in this Region: {{total_checklists}}</div>
 
 
     </div>
@@ -56,7 +58,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="c in topContributors"><td>{{c.name}}</td><td>{{c.contributeCount}}</td></tr>
+            <tr v-for="c in top_contributors"><td>{{c.name}}</td><td>{{c.contributions}}</td></tr>
           </tbody>
 
         </table>
