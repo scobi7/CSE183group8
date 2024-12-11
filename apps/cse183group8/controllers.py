@@ -40,6 +40,8 @@ url_signer = URLSigner(session)
 def index():
     return dict(
         my_callback_url=URL('my_callback', signer=url_signer),
+        get_bird_sightings_url=URL('get_bird_sightings'),
+        save_coords_url=URL('save_coords'),
     )
 
 @action('my_callback')
