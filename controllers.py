@@ -31,6 +31,7 @@ from .common import db, session, T, cache, auth, logger, authenticated, unauthen
 from py4web.utils.url_signer import URLSigner
 from .models import get_user_email
 import json
+import csv
 
 url_signer = URLSigner(session)
 
@@ -38,33 +39,36 @@ url_signer = URLSigner(session)
 @action.uses('index.html', db, auth, url_signer)
 def index():
     return dict(
-        # COMPLETE: return here any signed URLs you need.
-        my_callback_url = URL('my_callback', signer=url_signer),
+        my_callback_url=URL('my_callback', signer=url_signer),
     )
 
 @action('my_callback')
-@action.uses() # Add here things like db, auth, etc.
+@action.uses(db, auth)
 def my_callback():
-    # The return value should be a dictionary that will be sent as JSON.
+    if db(db.checklist).isempty():
+        with open('checklist.csv', 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                db.sightings.insert(COMMON_NAME=row[0])
     return dict(my_value=3)
 
 @action('checklist')
 @action.uses('checklist.html', db, auth.user, url_signer)
 def checklist():
-    if not auth.curren_user:
+    if not auth.current_user:
         redirect(URL('auth/login'))
     return dict(
-        checklist_data_url = URL('checklist_data'),
-        my_checklist_url = URL('my_checklist'),
-        update_sightings_url = URL('update_sightings')
+        checklist_data_url=URL('checklist_data'),
+        my_checklist_url=URL('my_checklists'),
+        update_sightings_url=URL('update_sightings')
     )
 
 @action('checklist_data', method="GET")
-@action.uses(db,auth)
+@action.uses(db, auth)
 def checklist_data():
     species_sightings = db(db.sightings).select(
-        db.sightings.COMMON_NAME,
-        db.sightings.OBSERVATION_COUNT.sum(),
+        db.sightings.COMMON_NAME.with_alias('common_name'),
+        db.sightings.OBSERVATION_COUNT.sum().with_alias('total_sightings'),
         groupby=db.sightings.COMMON_NAME
     ).as_list()
     return dict(checklist_data=species_sightings)
@@ -72,16 +76,16 @@ def checklist_data():
 @action('my_checklists')
 @action.uses('my_checklists.html', db, auth.user, session)
 def my_checklists():
-    drawn_cordinates = session.get('drawn_coordinates', [])
+    drawn_coordinates = session.get('drawn_coordinates', [])
     return dict(
         load_checklists_url=URL('load_checklists'),
         delete_checklists_url=URL('delete_checklists'),
         edit_checklists_url=URL('edit_checklists'),
-        drawn_cordinates = json.dumps(drawn_cordinates),
+        drawn_coordinates=json.dumps(drawn_coordinates),
     )
 
 @action('load_checklists')
-@action.uses(db,auth.user)
+@action.uses(db, auth.user)
 def load_checklists():
     user_email = get_user_email()
     checklists = db(db.checklist.OBSERVER_ID == user_email).select().as_list()
@@ -95,18 +99,18 @@ def add_checklist():
         redirect(URL('auth/login'))
     return dict(
         submit_checklist_url=URL('submit_checklist'),
-        drawn_coordinates = json.dumps(drawn_coordinates)
+        drawn_coordinates=json.dumps(drawn_coordinates)
     )
 
-@action('submit_checklist', method = 'POST')
+@action('submit_checklist', method='POST')
 @action.uses(db, auth.user, url_signer)
 def submit_checklist():
     if not auth.current_user:
-        redirect(URL('auth/login)'))
+        redirect(URL('auth/login'))
     species_name = request.forms.get('species_name')
     latitude = float(request.forms.get('latitude'))
     longitude = float(request.forms.get('longitude'))
-    observation_date = request.form.get('observation_date')
+    observation_date = request.forms.get('observation_date')
     time_observations_started = request.forms.get('time_observations_started')
     duration_minutes = float(request.forms.get('duration_minutes'))
 
@@ -118,7 +122,7 @@ def submit_checklist():
     
     sampling_event_identifier = sighting.SAMPLING_EVENT_IDENTIFIER
 
-    db.checklist.inser(
+    db.checklist.insert(
         SAMPLING_EVENT_IDENTIFIER=sampling_event_identifier,
         LATITUDE=latitude,
         LONGITUDE=longitude,
@@ -145,8 +149,8 @@ def delete_checklist(checklist_id):
 
     return dict(message="Checklist Deleted")
 
-@action('edit_checklist/<checklist_id:int>', method=['GET','POST'])
-@action.uses(db,auth.user,url_signer)
+@action('edit_checklist/<checklist_id:int>', method=['GET', 'POST'])
+@action.uses(db, auth.user, url_signer)
 def edit_checklist(checklist_id):
     checklist = db.checklist[checklist_id]
     if not checklist:
@@ -158,11 +162,11 @@ def edit_checklist(checklist_id):
         )
     if request.method == 'POST':
         checklist.update_record(
-            SAMPLING_EVENT_IDENTIFIER = request.forms.get('sampling_event_identifier'),
+            SAMPLING_EVENT_IDENTIFIER=request.forms.get('sampling_event_identifier'),
             LATITUDE=float(request.forms.get('latitude')),
             LONGITUDE=float(request.forms.get('longitude')),
             OBSERVATION_DATE=request.forms.get('observation_date'),
-            TIME_OBSERVATIONS_STARTED=request.gorms.get('time_observations_started'),
+            TIME_OBSERVATIONS_STARTED=request.forms.get('time_observations_started'),
             OBSERVER_ID=get_user_email(),
             DURATION_MINUTES=float(request.forms.get('duration_minutes'))
         )
