@@ -2,22 +2,183 @@
 
 <style>
 [v-cloak] {
-     display: none;
+    display: none;
+}
+
+.box-container {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.box {
+    max-width: 100%;
+}
+
+.select {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.select select {
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+@media screen and (max-width: 1200px) {
+    .column.is-4 {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.info-icon {
+    display: inline-block;
+    margin-left: 8px;
+    color: #007BFF;
+    cursor: pointer;
+    font-size: 1.2em;
+    position: relative;
+}
+
+.info-icon i {
+    vertical-align: middle;
+}
+
+.tooltip-content {
+    position: absolute;
+    background: #333;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    max-width: 200px;
+    z-index: 1000;
+    font-size: 0.9em;
+    opacity: 0.9;
+    display: none;
+    white-space: normal;
+    left: calc(100% + 10px);
+}
+
+.tooltip-content::after {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #333 transparent transparent;
+}
+
+.tooltip-visible {
+    display: block;
 }
 </style>
 
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+</head>
 
 <div class="section" id="app" v-cloak>
-  <!-- Put here your Vue.js template -->
-  <h1 class="title"><i class="fa-solid fa-cube"></i> Title</h1>
-  <p>Content: my_value: {{my_value}} </p>
+    <h1 class="title">Welcome to Your Birding Dashboard!</h1>
+    <p>Explore recent bird sightings in your area. You can select a species to filter the map, submit a new checklist, or view your birding statistics.</p>
+    <div class="columns">
+        <div class="column is-8" style="position: relative;">
+            <div id="map" style="height: 650px;"></div>
+            <div id="loading-overlay" v-if="loading" class="loading-overlay">
+                <p>Updating Heatmap... Please wait</p>
+            </div>
+        </div>
+        <div class="column is-4">
+            <div class="box-container ml-4">
+                <div class="box">
+                    <label class="label">User Options</label>
+                    <div class="control">
+                        <a href="[[=URL('user_statistics')]]" class="button is-info">My Birding</a>
+                        <a href="[[=URL('add_checklist')]]" class="button is-link ml-3">Enter Checklist</a>
+                    </div>
+                </div>
+                <div class="box">
+                    <label class="label">Map Instructions</label>
+                    <p class="description">
+                        Double-click on the map to drop points.  
+                        <br>For a rectangular region, place two points to define opposite corners, then click "Draw Rectangle". 
+                        <br>You can then get detailed stats for that region.
+                    </p>
+                </div>
+                <div class="box">
+                    <label class="label">Map Tools</label>
+                    <div class="field">
+                        <div class="control mt-3">
+                            <button id="create-region" class="button is-success" @click="drawPolygon">Draw Rectangle</button>
+                        </div>
+                    </div>
+                    <div class="field mt-3">
+                        <div class="control">
+                            <a href="[[=URL('user_statistics')]]" class="button is-primary">Statistics on Region</a>
+                            <span class="info-icon" @click="showToolTip($event, 'region-info')">
+                                <i class="bi bi-info-circle"></i>
+                            </span>
+                        </div>
+                        <div id="region-info" class="tooltip-content" v-if="tooltipVisible['region-info']">
+                            Create a region on the map and then click Statistics on Region to get interesting statistics about the selected area!
+                        </div>
+                    </div>
+                    <div class="field mt-3">
+                        <div class="control">
+                          <button id="clear-map" class="button is-danger" @click="clearPolygon">Clear Map</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="box">
+                    <label class="label">Map Filter</label>
+                    <div class="field">
+                        <label class="description">Filter by Species: </label>
+                        <p class="description">(If no species is selected, data for all species is shown)</p>
+                        <p class="description">(Dropdown only shows species within current map bounds.)</p>
+                        <div class="control mt-2">
+                            <div class="select">
+                                <select id="species" v-model="selectedSpecies" @change="loadHeatMap">
+                                    <option v-for="species in filteredSpeciesList" :key="species" :value="species">
+                                        {{ species }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+     </div>
 </div>
 
-
 [[block page_scripts]]
-<!-- Loads the index-specific js for Vue -->
 <script>
-  let my_callback_url = "[[=XML(my_callback_url)]]";
+    let my_callback_url = "[[=XML(my_callback_url)]]";
+    let get_bird_sightings_url = "[[=XML(get_bird_sightings_url)]]";
+    let save_coords_url = "[[=XML(save_coords_url)]]";
 </script>
-<script src="js/index.js"></script>
+<script src="js/leaflet-heat.js"></script>
+<script src="js/convex-hull.js"></script>
+<script src="js/map.js"></script>
 [[end]]
