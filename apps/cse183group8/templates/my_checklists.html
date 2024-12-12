@@ -1,0 +1,64 @@
+[[extend 'layout.html']]
+
+<style>
+  [v-cloak] {
+    display: none;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+</style>
+
+<div class="section" id="app" v-cloak>
+  <h1 class="title"><i class="fa-solid fa-list"></i> My Checklists</h1>
+  <div class="columns">
+    <div class="column">
+      <button onclick="window.history.back()" class="button is-info">Back</button>
+    </div>
+    <div class="column has-text-right">
+      <a href="[[=URL('add_checklist')]]" class="button is-info">Add Checklist</a>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="table-container">
+    <table class="table is-fullwidth">
+      <thead>
+        <tr>
+          <th>Species Name</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Date Observed</th>
+          <th>Duration Observed</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(checklist, index) in checklists" :key="checklist.id">
+          <td>{{ checklist.SAMPLING_EVENT_IDENTIFIER }}</td>
+          <td>{{ checklist.LATITUDE }}</td>
+          <td>{{ checklist.LONGITUDE }}</td>
+          <td>{{ checklist.OBSERVATION_DATE }}</td>
+          <td>{{ checklist.DURATION_MINUTES }}</td>
+          <td>
+            <!-- Edit and Delete Buttons -->
+            <div class="buttons">
+              <button @click="deleteChecklist(checklist.id)" class="button is-danger is-small">Delete</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+[[block page_scripts]]
+<script>
+  const load_checklists_url = "[[=URL('load_checklists')]]";
+  const delete_checklist_url = "[[=URL('delete_checklist')]]";
+  const edit_checklist_url = "[[=URL('edit_checklist')]]";
+  let drawn_coordinates = JSON.parse('[[=XML(drawn_coordinates)]]');
+</script>
+<script src="js/my_checklists.js"></script>
+[[end]]
