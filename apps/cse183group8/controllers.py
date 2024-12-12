@@ -56,16 +56,6 @@ def my_callback():
             reader = csv.reader(f)
             for row in reader:
                 db.species.insert(COMMON_NAME=row[0])
-#    if db(db.sightings).isempty():
-#        with open('sightings.csv', 'r') as f:
-#            reader = csv.reader(f)
-#            for row in reader:
-#                db.sightings.insert(COMMON_NAME=row[0], bird_count=row[1])
-#    if db(db.checklist).isempty():
-#        with open('checklist.csv', 'r') as f:
-#            reader = csv.reader(f)
-#            for row in reader:
-#                db.sightings.insert(COMMON_NAME=row[0])
     return dict(my_value=1)
 
 @action('user_statistics')
@@ -119,32 +109,50 @@ def get_bird_sightings():
             })
     return dict(sightings=sightings_list)
 
-# @action('save_coords', method='POST')
-# @action.uses(db, auth.user, url_signer, session)
-# def save_coords():
-#     data = request.json
-#     drawing_coords = data.get('drawing_coords')
-#     default_coords = data.get('default_coords')
-#     print("Drawing Coords", drawing_coords)
-#     print("Default Coords", default_coords)
-#     print(default_coords)
-#     if (drawing_coords is None or len(data.get('drawing_coords')) == 0):
-#         session['drawn_coordinates'] = default_coords
-#     else:
-#         session['drawn_coordinates'] = drawing_coords
-#     return 'Coordinates saved successfully.'
-
 @action('save_coords', method='POST')
 @action.uses(db, auth, url_signer, session)
 def save_coords():
     data = request.json
     drawing_coords = data.get('drawing_coords', [])
     if not drawing_coords:
-        # If no coords given, you can set a default or just empty
         session['drawn_coordinates'] = []
     else:
         session['drawn_coordinates'] = drawing_coords
     return 'Coordinates saved successfully.'
+
+@action('add_location')
+@action.uses('add_location.html', db, auth.user, url_signer)
+def add_location():
+    return dict(
+        submit_location_url=URL('submit_location', signer=url_signer)
+    )
+
+@action('submit_location', method='POST')
+@action.uses(db, auth.user, url_signer)
+def submit_location():
+    name = request.forms.get('name')
+    latitude = request.forms.get('latitude')
+    longitude = request.forms.get('longitude')
+    
+    if not name or not latitude or not longitude:
+        return dict(message="Please provide all location details.")
+    
+    try:
+        lat = float(latitude)
+        lon = float(longitude)
+    except ValueError:
+        return dict(message="Invalid coordinates.")
+    
+    user_email = get_user_email()
+    
+    db.location.insert(
+        name=name,
+        latitude=lat,
+        longitude=lon,
+        user_email=user_email
+    )
+    db.commit()
+    redirect(URL('index'))
 
 @action('update_sightings', method=["POST"])
 @action.uses(db, auth, url_signer)

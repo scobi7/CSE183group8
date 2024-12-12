@@ -1,5 +1,6 @@
 [[extend 'layout.html']]
 
+<!-- Styling -->
 <style>
 [v-cloak] {
     display: none;
@@ -99,6 +100,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
+<!-- Loading -->
 <div class="section" id="app" v-cloak>
     <h1 class="title">Welcome to Your Birding Dashboard!</h1>
     <p>Explore recent bird sightings in your area. You can select a species to filter the map, submit a new checklist, or view your birding statistics.</p>
@@ -116,6 +118,7 @@
                     <div class="control">
                         <a href="[[=URL('user_statistics')]]" class="button is-info">My Birding</a>
                         <a href="[[=URL('add_checklist')]]" class="button is-link ml-3">Enter Checklist</a>
+                        <a href="[[=URL('add_location')]]" class="button is-primary ml-3">Add Location</a>
                     </div>
                 </div>
                 <div class="box">
@@ -180,6 +183,5 @@
 </script>
 <script src="js/leaflet-heat.js"></script>
 <script src="js/convex-hull.js"></script>
-<script src="js/map.js"></script>
 <script src="js/index.js"></script>
 [[end]]

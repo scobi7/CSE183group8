@@ -63,3 +63,13 @@ CREATE TABLE "checklist_table"(
     "numseen" INTEGER
 );
 success!
+timestamp: 2024-12-12T14:02:38.553143
+CREATE TABLE "location"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "name" CHAR(512),
+    "latitude" DOUBLE,
+    "longitude" DOUBLE,
+    "user_email" CHAR(512),
+    "created_on" TIMESTAMP
+);
+success!

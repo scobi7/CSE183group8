@@ -1,0 +1,36 @@
+[[extend 'layout.html']]
+
+<section class="section">
+    <h1 class="title">Add a New Location</h1>
+    <form action="[[=submit_location_url]]" method="post">
+        <div class="field">
+            <label class="label">Location Name</label>
+            <div class="control">
+                <input class="input" type="text" name="name" placeholder="e.g. My Backyard" required>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">Latitude</label>
+            <div class="control">
+                <input class="input" type="number" step="any" name="latitude" placeholder="e.g. 36.9741" required>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">Longitude</label>
+            <div class="control">
+                <input class="input" type="number" step="any" name="longitude" placeholder="-122.0308" required>
+            </div>
+        </div>
+
+        <div class="field is-grouped mt-3">
+            <div class="control">
+                <button class="button is-primary" type="submit">Add Location</button>
+            </div>
+            <div class="control">
+                <a class="button is-light" href="[[=URL('index')]]">Cancel</a>
+            </div>
+        </div>
+    </form>
+</section>
