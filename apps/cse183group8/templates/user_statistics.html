@@ -1,0 +1,247 @@
+[[extend 'layout.html']]
+
+<style>
+[v-cloak] {
+    display: none;
+}
+
+.box-container {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.box {
+    max-width: 100%;
+}
+  
+#map {
+    width: 100%;
+    height: 300px;
+    margin-bottom: 20px;
+  }
+
+ul {
+  list-style-type: none; 
+  padding: 0;
+}
+
+ul ul {
+  list-style-type: none; 
+  padding-left: 20px; 
+}
+
+ul li {
+  margin-bottom: 10px; 
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.select {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.select select {
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+@media screen and (max-width: 1200px) {
+    .column.is-4 {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.info-icon {
+    display: inline-block;
+    margin-left: 8px;
+    color: #007BFF;
+    cursor: pointer;
+    font-size: 1.2em;
+    position: relative;
+}
+
+.info-icon i {
+    vertical-align: middle;
+}
+
+.tooltip-content {
+    position: absolute;
+    background: #333;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    max-width: 200px;
+    z-index: 1000;
+    font-size: 0.9em;
+    opacity: 0.9;
+    display: none;
+    white-space: normal;
+    left: calc(100% + 10px);
+}
+
+.tooltip-content::after {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #333 transparent transparent;
+}
+
+.tooltip-visible {
+    display: block;
+}
+</style>
+
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""/>
+</head>
+
+<div class="section" id="statistics-app" v-cloak>
+  <h1 class="title"><i class="fa-solid fa-cube"></i> Region Statistics Page </h1>
+  <p>This page allows you to view bird sightings on specific dates. Click a bird and a date option to see where it was seen on that day.</p>
+  <div class="field is-grouped">
+    <div class="control is-three-quarters">
+      <input class="input" type="text" v-model="query" placeholder="Search common names">
+    </div>
+    <div class="control">
+      <button class="button is-primary" @click="search">Search</button>
+    </div>
+  </div>
+  <div id="map"></div>
+  <div class="field">
+    <label class="label">Select Category</label>
+    <div class="control">
+      <div class="select">
+        <select v-model="selectedCategory" @change="loadCategory">
+          <option value="my_birds">My Birds</option>
+          <option value="birds_spotted">Birds Spotted</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+  <div class="columns is-multiline">
+    <div class="column is-one-third" v-for="name in selectedBirds" :key="name.COMMON_NAME">
+      <ul>
+        <li @click="fetchObservationDates(name)">
+          <strong>{{ name.COMMON_NAME }}</strong>
+          <ul>
+            <li v-for="(date, index) in name.observation_dates" :key="date.OBSERVATION_DATE" @click="moveMapToObservation(name, date)">
+              <span>Date: {{ date.OBSERVATION_DATE }}</span>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+  
+<div class="columns is-multiline">
+  <div class="column is-one-third" v-for="(name, index) in common_names" :key="name.COMMON_NAME">
+    <ul>
+      <li @click="fetchObservationDates(name)">
+        <strong>{{ name.COMMON_NAME }}</strong>
+        <ul>
+          <li v-for="(date, index) in name.observation_dates" :key="date.OBSERVATION_DATE" @click="moveMapToObservation(name, date)">
+            <span>Date: {{ date.OBSERVATION_DATE }}</span>
+            <ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+
+
+[[block page_scripts]]
+<script>
+  let load_user_statistics_url = "[[=XML(load_user_statistics_url)]]";
+  let search_url = "[[=XML(search_url)]]";
+  let observation_dates_url = "[[=XML(observation_dates_url)]]"; 
+</script>
+<script src="js/statistics.js"></script>
+<script src="js/leaflet-heat.js"></script>
+<script src="js/convex-hull.js"></script>
+<script src="js/map.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    fetch(load_user_statistics_url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        new Vue({
+            el: '#statistics-app',
+            data: {
+                common_names: data.common_names
+            },
+            methods: {
+                fetchObservationDates(name) {
+                },
+                moveMapToObservation(name, date) {
+                }
+            }
+        });
+    })
+    .catch(error => console.error('Error loading statistics:', error));
+});
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const map = L.map('map').setView([36.9915, -122.0583], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const userLocation = [position.coords.latitude, position.coords.longitude];
+        map.setView(userLocation, 13);
+        L.marker(userLocation).addTo(map)
+          .bindPopup('You are here')
+          .openPopup();
+      });
+    }
+
+    window.map = map; // Make map accessible globally
+  });
+</script>
+[[end]]

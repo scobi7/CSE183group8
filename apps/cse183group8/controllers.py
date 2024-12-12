@@ -40,11 +40,48 @@ url_signer = URLSigner(session)
 def index():
     return dict(
         my_callback_url = URL('my_callback', signer=url_signer),
-        # get_user_statistics_url = URL('get_user_statistics'),
-        # search_url = URL('search'),
+        get_user_statistics_url = URL('get_user_statistics'),
+        load_user_statistics_url = URL('load_user_statistics'),
+        search_url = URL('search'),
         get_bird_sightings_url = URL('get_bird_sightings'),
         save_coords_url = URL('save_coords'),
     )
+
+@action('my_callback')
+    
+@action.uses(db, auth)
+def my_callback():
+    if db(db.species).isempty():
+        with open('species.csv', 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                db.species.insert(COMMON_NAME=row[0])
+#    if db(db.sightings).isempty():
+#        with open('sightings.csv', 'r') as f:
+#            reader = csv.reader(f)
+#            for row in reader:
+#                db.sightings.insert(COMMON_NAME=row[0], bird_count=row[1])
+#    if db(db.checklist).isempty():
+#        with open('checklist.csv', 'r') as f:
+#            reader = csv.reader(f)
+#            for row in reader:
+#                db.sightings.insert(COMMON_NAME=row[0])
+    return dict(my_value=1)
+
+@action('user_statistics')
+@action.uses('user_statistics.html', db, auth.user, url_signer)
+def user_statistics():
+    return dict(
+        load_user_statistics_url = URL('load_user_statistics'),
+        search_url = URL('search'),
+        observation_dates_url = URL('observation_dates')
+    )
+    
+@action('load_user_statistics')
+@action.uses(db, auth.user, url_signer)
+def get_user_statistics():
+    common_names = db(db.sightings).select(db.sightings.COMMON_NAME, distinct=True).as_list()
+    return dict(common_names=common_names)
 
 @action('get_bird_sightings', method=['POST'])
 @action.uses(db, auth, url_signer)
@@ -190,16 +227,6 @@ def observation_date():
     observation_dates = db(query).select(db.checklist.OBSERVATION_DATE, distinct=True).as_list()
 
     return dict(observation_dates=observation_dates, most_recent_sighting=most_recent_sighting)
-
-@action('my_callback')
-@action.uses(db, auth)
-def my_callback():
-    if db(db.checklist).isempty():
-        with open('checklist.csv', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                db.sightings.insert(COMMON_NAME=row[0])
-    return dict(my_value=3)
 
 @action('checklist')
 @action.uses('checklist.html', db, auth.user, url_signer)
