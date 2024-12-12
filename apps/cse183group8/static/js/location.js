@@ -8,11 +8,9 @@ app.data = {
         return {
             chart: undefined,
 
-            chart_data: [12, 19, 3, 5, 2, 3], //TODO change based on species selected
-            chart_labels: ['day 1?', 'day 2', 'day 3', 'day 4', 'day 5', 'day 6'], //change
-
-            bird_list: [{species: "White-crowned Sparrow", "day": "2024-01-02", count: 10}, {species: "Song Sparrow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}, {species: "American Crow", "day": "2024-01-02", count: 10}],  //dummy variables for testing
-            top_contributors: [{name: "guy", contributions: 5}, {name: "person", contributions: 2}], //not final structure
+            //dummy data for testing
+            top_contributors: [{name: "guy", contributions: 5}, {name: "person", contributions: 2}],
+            location_data: [{species: "White-crowned Sparrow", "day": ['2024-01-02', '2024-01-03'], count: [10, 5]}, {species: "Song Sparrow", "day": ['2024-01-02'], count: [10]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}],
 
             sightings: [],
             checklist: [],
@@ -33,23 +31,13 @@ app.data = {
     },
     methods: {        
 
-        get_sightings: function() {
-            let self = this;
-            axios.post(get_location_data_url, {
-
-            }).then(function (r) {
-                //self.sightings = r.data.sightings;
-                //self.checklist = r.data.checklist;
-                //somehow get region coordinates
-            });
-        },
 
         /********************
          * Draws a graph using chart.js depending on which bird is selected by user.
          * horizontal axis shows days the bird is spotted
          * vertical axis shows number of times bird is spotted
          ********************/
-        make_chart: function() {
+        make_chart: function(labels, data) {
             //destory graph if it already exists so we can reuse the canvas
             if (this.chart != undefined) {
                 this.chart.destroy();
@@ -58,10 +46,10 @@ app.data = {
             this.chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                labels: this.chart_labels,
+                labels: labels,
                 datasets: [{
-                    label: '# of Times Seen',  //TODO maybe change label can be a variable for species name + number of times seen
-                    data: this.chart_data,
+                    label: '# of Times Seen', 
+                    data: data,
                     borderWidth: 1
                     }]
                 },
@@ -94,35 +82,9 @@ app.data = {
             this.dropdown_active = false;
             this.active_species = bird.species;
 
-
-            let self = this;
-            axios.post(get_location_data_url, {
-            }).then(function (r) {
-                self.bird_list=r.data.location_data;
-            });
-
-            this.chart_data 
-
-            this.make_chart(); //need to pass in chart_data and chart_labels but with bird specific data
+            this.make_chart(bird.day, bird.count);
         },
 
-
-
-
-        //temp function
-        test_button: function() {
-            this.chart_data =  [1, 2, 3, 5, 2, 3];
-        },
-
-        //temp function
-        test_button2: function() {
-            let self = this;
-            axios.post(get_location_data_url, {
-
-            }).then(function (r) {
-                self.bird_list=r.data.location_data;
-            });
-        },
     }
 
     
@@ -132,11 +94,12 @@ app.vue = Vue.createApp(app.data).mount("#app");
 
 app.load_data = function () {
     axios.get(get_location_data_url).then(function (r) {
-        app.vue.chart_data = r.data.location_data["count"];
-        app.vue.chart_labels = r.data.location_data["day"];
-        app.vue.top_contributors = r.data.contributor_list;
+        app.vue.location_data = r.data.location_data; //[{'species': 'bird', 'day': ['2021-02-03'], 'count': [2]}]
+        app.vue.top_contributors = r.data.contributor_list; //[{'name': name, 'contributions': 1}]
         app.vue.total_sightings = r.data.total_sightings;
         app.vue.total_checklists = r.data.total_checklists;
+
+        console.log(app.vue.location_data);
     });
 
 

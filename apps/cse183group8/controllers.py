@@ -191,57 +191,72 @@ def get_location_data():
     contributor_list = [] # [{'name': name, 'contributions': 1}]
     location_data = [] # [{'species': 'bird', 'day': ['2021-02-03'], 'count': [2]}]
 
-    #full lists. get coordinates somehow. create a new list of checklist
+    #full lists for now. get coordinates somehow. replace full lists with a new list that is restricted within coordinates
     checklist = db(db.checklist).select().as_list() 
     sightings = db(db.sightings).select().as_list() 
 
+    #print(checklist[0]) # {'id': 1, 'SAMPLING_EVENT_IDENTIFIER': None, 'LATITUDE': 37.06096445677006, 'LONGITUDE': -84.63335595604734, 'OBSERVATION_DATE': None, 'TIME_OBSERVATIONS_STARTED': None, 'OBSERVER_ID': None, 'DURATION_MINUTES': None}
+    #print(sightings[0]) # {'id': 1, 'SAMPLING_EVENT_IDENTIFIER': None, 'COMMON_NAME': None, 'OBSERVATION_COUNT': None}
+
+    #manual
+    # {'id': 1, 'SAMPLING_EVENT_IDENTIFIER': 'S80376372', 'LATITUDE': 37.06096445677006, 'LONGITUDE': -84.63335595604734, 'OBSERVATION_DATE': datetime.date(2021, 2, 3), 'TIME_OBSERVATIONS_STARTED': datetime.time(10, 55), 'OBSERVER_ID': 'obs1644106', 'DURATION_MINUTES': 90.0}
+    # {'id': 1, 'SAMPLING_EVENT_IDENTIFIER': 'S80376372', 'COMMON_NAME': 'White-crowned Sparrow', 'OBSERVATION_COUNT': '2'}
+
     for sight in sightings: 
-        checklist_data = db(db.checklist.SAMPLING_EVENT_IDENTIFIER == sight.SAMPLING_EVENT_IDENTIFIER).select().first()
-        #if sight.SAMPLING_EVENT_IDENTIFIER == checklist_data.SAMPLING_EVENT_IDENTIFIER: #
-
-        if not location_data: # if empty, populate with first item
-            location_data.append({
-                'species': sight.COMMON_NAME,
-                'day': [checklist_data.DATE], #list of dates
-                'count': [sight.OBSERVATION_COUNT] #list of counts, index aligned with the dates
-            })
-            total_sightings += sight.OBSERVATION_COUNT
-        else:
-            for check_location_data in location_data:
-                if check_location_data['species'] == sight.COMMON_NAME: # have seen the bird before
-                    
-                    if checklist_data.DATE in check_location_data['day']: 
-                        # add up count for this day
-                        get_index = check_location_data['day'].index(checklist_data.DATE) # index of the existing day
-                        check_location_data['count'][get_index] += sight.OBSERVATION_COUNT
-                        total_sightings += sight.OBSERVATION_COUNT
-                        break
-                    else:
-                        # append day and count
-                        check_location_data['day'].append(checklist_data.DATE)
-                        check_location_data['count'].append(sight.OBSERVATION_COUNT)
-                        total_sightings += sight.OBSERVATION_COUNT
-                        break
-
+        checklist_data = db(db.checklist.SAMPLING_EVENT_IDENTIFIER == sight['SAMPLING_EVENT_IDENTIFIER']).select().first()
+        if sight['SAMPLING_EVENT_IDENTIFIER'] == checklist_data.SAMPLING_EVENT_IDENTIFIER: # this sighting has location and time data in checklists
+            if not location_data: # if empty, populate with first item
+                location_data.append({
+                    'species': sight['COMMON_NAME'],
+                    'day': [checklist_data.OBSERVATION_DATE], #list of dates
+                    'count': [int(sight['OBSERVATION_COUNT'])] #list of counts, index aligned with the dates
+                })
+                total_sightings += int(sight['OBSERVATION_COUNT'])
+            else: # second item or later
+                bird_found = False
+                for check_location_data in location_data: #loop to search if bird already is accounted for
+                    if check_location_data['species'] == sight['COMMON_NAME']: # have seen the bird before  
+                        if checklist_data.OBSERVATION_DATE in check_location_data['day']: 
+                            # add up count (bird already exists, day already exists)
+                            get_index = check_location_data['day'].index(checklist_data.OBSERVATION_DATE) # index of the existing day
+                            check_location_data['count'][get_index] += int(sight['OBSERVATION_COUNT'])
+                            total_sightings += int(sight['OBSERVATION_COUNT'])
+                            bird_found = True
+                            break
+                        else:
+                            # append day and count (bird already exists, new day)
+                            check_location_data['day'].append(checklist_data.OBSERVATION_DATE)
+                            check_location_data['count'].append(int(sight['OBSERVATION_COUNT']))
+                            total_sightings += int(sight['OBSERVATION_COUNT'])
+                            bird_found = True
+                            break
+                if not bird_found: # add a new bird entry
+                    location_data.append({
+                        'species': sight['COMMON_NAME'],
+                        'day': [checklist_data.OBSERVATION_DATE], #list of dates
+                        'count': [int(sight['OBSERVATION_COUNT'])] #list of counts, index aligned with the dates
+                    })
+                    total_sightings += int(sight['OBSERVATION_COUNT'])
+            
     # get the observers from database and put into a list with number of contributions
     for check in checklist:
         if not contributor_list:
-            contributor_list.append({'name': check.OBSERVER_ID, 'contributions': 1})
+            contributor_list.append({'name': check['OBSERVER_ID'], 'contributions': 1})
             total_checklists += 1
         else:
             contributor_found = False
             for contributor in contributor_list:
-                if check.OBSERVER_ID in contributor['name']:
+                if check['OBSERVER_ID'] in contributor['name']:
                     contributor_found = True
                     contributor['contributions'] += 1
                     total_checklists += 1
                     break
             if not contributor_found:
-                contributor_list.append({'name': check.OBSERVER_ID, 'contributions': 1})
+                contributor_list.append({'name': check['OBSERVER_ID'], 'contributions': 1})
                 total_checklists += 1
     if contributor_list:
         temp_list = sorted(contributor_list, key=lambda x: x['name'], reverse=True) #sort list so top contributors appear first
-        contributor_list = temp_list
+        contributor_list = temp_list            
 
     return dict(location_data=location_data, contributor_list=contributor_list, total_sightings=total_sightings, total_checklists=total_checklists)
 
