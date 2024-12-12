@@ -60,7 +60,7 @@ app.data = {
     }
 };
 
-app.vue = Vue.createAPP(app.data).mount("#app");
+app.vue = Vue.createApp(app.data).mount("#app");
 
 app.load_data = function() {
     axios.get(checklist_data_url).then(response => {

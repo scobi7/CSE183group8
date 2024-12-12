@@ -1,0 +1,96 @@
+[[extend 'layout.html']]
+
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .search-container {
+        margin-bottom: 25px;
+    }
+
+    .search-input {
+        width: 100%;
+        max-width: 300px;
+        margin-bottom: 10px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+</style>
+
+<div class="section" id="app" v-cloak>
+    <div class="columns">
+        <div class="column is-10">
+            <h1 class="title"><i class="fa-solid fa-cube"></i> Checklist Page </h1>
+        </div>
+        <div class="column is-2">
+            <a href="[[=URL('my_checklists')]]" class="button is-info is-pulled-right">My Checklist</a>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input class="input search-input" type="text" v-mode="query" @keyup="filterSpecies" placeholder="Search for a species">
+    </div>
+
+    <div class="table-container">
+        <table class="table is is-fullwidth">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Species</th>
+                    <th style="width: 30;">Number of Sightings</th>
+                    <th style="width: 30;">Sightings Add Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template v-if="search_active">
+                    <tr v-for="(species, index) in search" :key="index" class="species-row">
+                      <td>{{ species.common_name }}</td>
+                      <td>{{ species.total_sightings }}</td>
+                      <td>
+                        <!-- Search Bar -->
+                        <div class="field has-addons">
+                          <p class="control">
+                            <input type="number" class="input" v-model.number="species.new_sightings" @keyup.enter="handleKeyUp($event, species)">
+                          </p>
+                          <!-- Increment Button -->
+                          <p class="control">
+                            <button class="button is-success" @click="incrementSightings(species)">
+                              +1
+                            </button>
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  </template>
+                  <template v-else>
+                    <tr v-for="(species, index) in checklist_data" :key="index" class="species-row">
+                      <td>{{ species.common_name }}</td>
+                      <td>{{ species.total_sightings }}</td>
+                      <td>
+                        <div class="field has-addons">
+                          <p class="control">
+                            <input type="number" class="input" v-model.number="species.new_sightings" @keyup.enter="handleKeyUp($event, species)">
+                          </p>
+                          <p class="control">
+                            <button class="button is-success" @click="incrementSightings(species)">
+                              +1
+                            </button>
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                 </template>
+            </tbody>
+        </table>
+    </div>
+</div>    
+[[block page_scripts]]
+<script>
+const checklist_data_url = "[[=URL('checklist_data')]]";
+const my_checklist_url = "[[=URL('my_checklist')]]";
+const update_sightings_url = "[[=URL('update_sightings')]]";
+</script>
+<script src="js/checklist.js"></script>
+[[end]]
