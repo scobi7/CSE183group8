@@ -1,7 +1,5 @@
 "use strict";
 
-// strictUI 
-
 function toRaw(obj) {
     return obj.__v_raw || obj;
 }
@@ -203,5 +201,3 @@ app.vue = Vue.createApp(app.data).mount("#app");
 app.load_data = function () {
 }
 app.load_data();
-
-// Works?
