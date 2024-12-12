@@ -33,14 +33,6 @@ app.data = {
     },
     methods: {        
 
-        // TODO need the coordinates of the user's selected region
-
-        // TODO need to fetch the list of Species in the Selected Region
-        // TODO need to fetch the total number of sightings in Selected Region
-
-        // TODO need to fetch some information on top contributors for the Selected Region. (maybe total # of contributions)
-
-
         get_sightings: function() {
             let self = this;
             axios.post(get_location_data_url, {
@@ -80,7 +72,7 @@ app.data = {
                         }
                     },
                     animation: {
-                        duration: 240
+                        duration: 0      // no animation
                     }
                 }
             });
@@ -142,6 +134,9 @@ app.load_data = function () {
     axios.get(get_location_data_url).then(function (r) {
         app.vue.chart_data = r.data.location_data["count"];
         app.vue.chart_labels = r.data.location_data["day"];
+        app.vue.top_contributors = r.data.contributor_list;
+        app.vue.total_sightings = r.data.total_sightings;
+        app.vue.total_checklists = r.data.total_checklists;
     });
 
 
