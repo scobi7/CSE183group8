@@ -9,8 +9,11 @@ app.data = {
             chart: undefined,
 
             //dummy data for testing
-            top_contributors: [{name: "guy", contributions: 5}, {name: "person", contributions: 2}],
-            location_data: [{species: "White-crowned Sparrow", "day": ['2024-01-02', '2024-01-03'], count: [10, 5]}, {species: "Song Sparrow", "day": ['2024-01-02'], count: [10]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}],
+            //top_contributors: [{name: "guy", contributions: 5}, {name: "person", contributions: 2},{name: "guy", contributions: 5}, {name: "person", contributions: 2},{name: "guy", contributions: 5}, {name: "person", contributions: 2},{name: "guy", contributions: 5}, {name: "person", contributions: 2}],
+            //location_data: [{species: "White-crowned Sparrow", "day": ['2024-01-02', '2024-01-03'], count: [10, 5]}, {species: "Song Sparrow", "day": ['2024-01-02'], count: [10]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}, {species: "American Crow", "day": ['2024-01-02', '2024-03-03'], count: [10, 9]}],
+
+            top_contributors: [],
+            location_data: [],
 
             sightings: [],
             checklist: [],
@@ -27,6 +30,8 @@ app.data = {
 
             dropdown_active: false, // dropdown to appear or not
             active_species: null, // true/false for selected bird in dropdown
+
+            total_current_sighting: 0, //the bird that the user has selected
         };
     },
     methods: {        
@@ -83,6 +88,11 @@ app.data = {
             this.active_species = bird.species;
 
             this.make_chart(bird.day, bird.count);
+
+            this.total_current_sighting = 0;
+            for(let i = 0; i < bird['count'].length; i++) {
+                this.total_current_sighting += bird['count'][i];
+            }
         },
 
     }
