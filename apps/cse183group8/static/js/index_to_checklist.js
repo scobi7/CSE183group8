@@ -1,51 +1,48 @@
 "use strict";
-// This will be the object that will contain the Vue attributes
-// and be used to initialize it.
+
+// Utility function to access raw values
 function toRaw(obj) {
     return obj.__v_raw || obj;
 }
 
-let app = {};
-
-app.data = {    
-    data: function() {
+// Vue Application
+const app = Vue.createApp({
+    data() {
         return {
             drawn_coordinates: drawn_coordinates || [],
             latitude: '',
             longitude: ''
         };
     },
-    methods: {
-
-    },
-
     computed: {
-
-        latUpdate: function(){
+        latUpdate() {
             return this.latitude;
         },
-
-        longUpdate: function() {
+        longUpdate() {
             return this.longitude;
         }
     },
+    methods: {
 
+    },
     mounted() {
-        console.log("This.drawn_coordinates", this.drawn_coordinates);
+        console.log("drawn_coordinates:", this.drawn_coordinates);
         if (this.drawn_coordinates.length > 0) {
-            this.latitude = this.drawn_coordinates[0].lat.toFixed(6); // Update latitude in Vue app's data
-            this.longitude = this.drawn_coordinates[0].lng.toFixed(6); // Update longitude in Vue app's data
+            const { lat, lng } = this.drawn_coordinates[0];
+            this.latitude = lat.toFixed(6); // Update latitude
+            this.longitude = lng.toFixed(6); // Update longitude
         }
-
     }
-};
+});
 
-app.vue = Vue.createApp(app.data).mount("#app");
+// Mount the Vue app to the DOM
+const vueInstance = app.mount("#app");
 
-app.load_data = function () {
-
+// Functionality for additional data loading
+function loadData() {
+    console.log("Loading additional data...");
+    // Implement data loading logic here
 }
 
-
-app.load_data();
-
+// Initialize data loading
+loadData();
