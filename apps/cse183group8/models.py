@@ -42,6 +42,15 @@ db.define_table(
     Field('numSeen', 'integer')
 )
 
+db.define_table(
+    'location',
+    Field('name', 'string'),
+    Field('latitude', 'double'),
+    Field('longitude', 'double'),
+    Field('user_email', default=get_user_email),
+    Field('created_on', 'datetime', default=get_time),
+)
+
 # Path to the csvfiles directory
 #CSV_DIR = os.path.join(os.path.dirname(__file__), 'csvfiles')
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # Two levels up from models.py
