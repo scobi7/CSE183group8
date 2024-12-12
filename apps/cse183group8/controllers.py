@@ -73,6 +73,20 @@ def get_user_statistics():
     common_names = db(db.sightings).select(db.sightings.COMMON_NAME, distinct=True).as_list()
     return dict(common_names=common_names)
 
+@action('my_birds')
+@action.uses('my_birds.html', db, auth.user, url_signer)
+def my_birds():
+    user_email = get_user_email()
+    if not user_email:
+        abort(403, "User not logged in")
+
+    # Fetch checklist data for the logged-in user
+    checklists = db(db.checklist.OBSERVER_ID == user_email).select().as_list()
+
+    return dict(
+        checklists=checklists,  # Pass the checklist data to the frontend
+    )
+
 @action('get_bird_sightings', method=['POST'])
 @action.uses(db, auth, url_signer)
 def get_bird_sightings():
@@ -119,40 +133,6 @@ def save_coords():
     else:
         session['drawn_coordinates'] = drawing_coords
     return 'Coordinates saved successfully.'
-
-@action('add_location')
-@action.uses('add_location.html', db, auth.user, url_signer)
-def add_location():
-    return dict(
-        submit_location_url=URL('submit_location', signer=url_signer)
-    )
-
-@action('submit_location', method='POST')
-@action.uses(db, auth.user, url_signer)
-def submit_location():
-    name = request.forms.get('name')
-    latitude = request.forms.get('latitude')
-    longitude = request.forms.get('longitude')
-    
-    if not name or not latitude or not longitude:
-        return dict(message="Please provide all location details.")
-    
-    try:
-        lat = float(latitude)
-        lon = float(longitude)
-    except ValueError:
-        return dict(message="Invalid coordinates.")
-    
-    user_email = get_user_email()
-    
-    db.location.insert(
-        name=name,
-        latitude=lat,
-        longitude=lon,
-        user_email=user_email
-    )
-    db.commit()
-    redirect(URL('index'))
 
 @action('update_sightings', method=["POST"])
 @action.uses(db, auth, url_signer)

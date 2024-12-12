@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Birds</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+    crossorigin=""/>
+    <style>
+      [v-cloak] {
+        display: none;
+      }
+    
+      .table-container {
+        overflow-x: auto;
+        margin: 20px;
+      }
+    
+      #map {
+        width: 100%;
+        height: 400px;
+        margin-bottom: 20px;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        margin: 0 auto;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      th, td {
+        padding: 10px 15px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      tr:hover {
+        background-color: #f1f1f1;
+      }
+
+      td {
+        text-align: center;
+      }
+
+      header h1 {
+        text-align: center;
+        margin-top: 20px;
+        font-family: 'Arial', sans-serif;
+      }
+    </style>  
+</head>
+<body>
+    <header>
+        <h1>My Birds</h1>
+    </header>
+    <div id="map"></div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Species Name</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Date Observed</th>
+            <th>Duration Observed</th>
+          </tr>
+        </thead>
+        <tbody id="bird-table-body">
+          <!-- Rows will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+    crossorigin=""></script>
+    <script>
+        const load_checklists_url = "[[=URL('load_checklists')]]";
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize the map
+            const map = L.map('map').setView([37.7749, -122.4194], 13); // Default: San Francisco
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Fetch bird checklist data
+            fetch(load_checklists_url)
+                .then(response => response.json())
+                .then(data => {
+                    const checklists = data.checklists;
+
+                    // Populate the table
+                    const tableBody = document.getElementById('bird-table-body');
+                    checklists.forEach(bird => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${bird.SAMPLING_EVENT_IDENTIFIER || 'N/A'}</td>
+                            <td>${bird.LATITUDE || 'N/A'}</td>
+                            <td>${bird.LONGITUDE || 'N/A'}</td>
+                            <td>${bird.OBSERVATION_DATE || 'N/A'}</td>
+                            <td>${bird.DURATION_MINUTES || 'N/A'}</td>
+                        `;
+                        tableBody.appendChild(row);
+
+                        // Add markers to the map
+                        if (bird.LATITUDE && bird.LONGITUDE) {
+                            L.marker([bird.LATITUDE, bird.LONGITUDE])
+                                .addTo(map)
+                                .bindPopup(`
+                                    <b>${bird.SAMPLING_EVENT_IDENTIFIER || 'Unknown'}</b><br>
+                                    Date: ${bird.OBSERVATION_DATE || 'N/A'}<br>
+                                    Duration: ${bird.DURATION_MINUTES || '0'} minutes
+                                `);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error loading checklists:', error));
+        });
+    </script>
+</body>
+</html>
