@@ -10,7 +10,9 @@
   }
 
   .box {
-    overflow: auto;
+    max-height: 14em;
+    overflow-x: auto;
+    overflow-y: scroll;
   }
   </style>
 
@@ -25,7 +27,7 @@
       
       <div class="box">Total Number of Sightings of all Birds: {{total_sightings}}</div>
 
-      <div class="box">Number of Checklists: {{total_checklists}}</div>
+      <div class="box">Total Number of Sightings of Selected Bird: {{total_current_sighting}}</div>
 
       <div class="card">
         <div class="card-content">
@@ -51,9 +53,10 @@
 
     </div>
     <div class="column is-half">
-      <div class="box"><canvas ref="speciesChart"></canvas></div>
+      <div class="card"><canvas ref="speciesChart"></canvas></div>
     </div>
     <div class="column is-one-quarter">
+      <div class="box">Number of Checklists: {{total_checklists}}</div>
       <div class="box">        
         <table class="table">
           <thead>
