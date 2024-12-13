@@ -16,3 +16,4 @@ How to run:
 Notes:
 Location page takes a while to load. Expect around a minute and a half of waiting time.
 Due to Location only working with the entire database rather than restricted to a region on the map.
+To edit values in the my_checklist page, click on the value you'd like to change. You are unable to change the Species Identifier Tag
