@@ -8,6 +8,11 @@
   .table-container {
     overflow-x: auto;
   }
+
+  td[contenteditable] {
+    border-bottom: 1px dotted #ccc;
+    cursor: text;
+  }
 </style>
 
 <div class="section" id="app" v-cloak>
@@ -36,15 +41,25 @@
       </thead>
       <tbody>
         <tr v-for="(checklist, index) in checklists" :key="checklist.id">
-          <td>{{ checklist.SAMPLING_EVENT_IDENTIFIER }}</td>
-          <td>{{ checklist.LATITUDE }}</td>
-          <td>{{ checklist.LONGITUDE }}</td>
-          <td>{{ checklist.OBSERVATION_DATE }}</td>
-          <td>{{ checklist.DURATION_MINUTES }}</td>
           <td>
+            {{ checklist.SAMPLING_EVENT_IDENTIFIER }}
+          </td>
+          <td contenteditable @blur="updateField(checklist.id, 'LATITUDE', $event.target.innerText)">
+            {{ checklist.LATITUDE }}
+          </td>
+          <td contenteditable @blur="updateField(checklist.id, 'LONGITUDE', $event.target.innerText)">
+            {{ checklist.LONGITUDE }}
+          </td>
+          <td contenteditable @blur="updateField(checklist.id, 'OBSERVATION_DATE', $event.target.innerText)">
+            {{ checklist.OBSERVATION_DATE }}
+          </td>
+          <td contenteditable @blur="updateField(checklist.id, 'DURATION_MINUTES', $event.target.innerText)">
+            {{ checklist.DURATION_MINUTES }}
+          </td>
+          <td>
+            <!-- Edit and Delete Buttons -->
             <div class="buttons">
               <button @click="deleteChecklist(checklist.id)" class="button is-danger is-small">Delete</button>
-              <button @click="editChecklist(checklist.id)" class="button is-link is-small">Edit</button>
             </div>
           </td>
         </tr>
@@ -57,7 +72,7 @@
 <script>
   const load_checklists_url = "[[=URL('load_checklists')]]";
   const delete_checklist_url = "[[=URL('delete_checklist')]]";
-  const edit_checklist_url = "[[=URL('edit_checklist')]]";
+  const update_checklist_url = "[[=URL('update_checklist')]]";
   let drawn_coordinates = JSON.parse('[[=XML(drawn_coordinates)]]');
 </script>
 <script src="js/my_checklists.js"></script>

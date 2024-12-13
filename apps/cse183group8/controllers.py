@@ -313,28 +313,25 @@ def delete_checklist(checklist_id):
 
     return dict(message="Checklist Deleted")
 
-@action('edit_checklist/<checklist_id:int>', method=['GET', 'POST'])
-@action.uses(db, auth.user, url_signer)
-def edit_checklist(checklist_id):
+@action('update_checklist', method='POST')
+@action.uses(db, auth.user)
+def update_checklist():
+    data = request.json
+    checklist_id = data.get('checklist_id')
+    field = data.get('field')
+    value = data.get('value')
+
+    if not checklist_id or not field or value is None:
+        abort(400, "Invalid request")
+
     checklist = db.checklist[checklist_id]
     if not checklist:
-        redirect(URL('my_checklists'))
-    if request.method == 'GET':
-        return dict(
-            checklist=checklist,
-            checklist_id=checklist_id
-        )
-    if request.method == 'POST':
-        checklist.update_record(
-            SAMPLING_EVENT_IDENTIFIER=request.forms.get('sampling_event_identifier'),
-            LATITUDE=float(request.forms.get('latitude')),
-            LONGITUDE=float(request.forms.get('longitude')),
-            OBSERVATION_DATE=request.forms.get('observation_date'),
-            TIME_OBSERVATIONS_STARTED=request.forms.get('time_observations_started'),
-            OBSERVER_ID=get_user_email(),
-            DURATION_MINUTES=float(request.forms.get('duration_minutes'))
-        )
-        redirect(URL('my_checklists'))
+        abort(404, "Checklist not found")
+
+    # Dynamically update the field
+    checklist.update_record(**{field: value})
+
+    return dict(success=True)
 
 
 @action('location')

@@ -3,36 +3,45 @@
 let app = {};
 
 app.data = {
-    data:function(){
+    data: function() {
         return {
             checklists: [],
             drawn_coordinates: drawn_coordinates || []
         };
     },
     methods: {
-        loadChecklists: function(){
+        loadChecklists: function() {
             let self = this;
             axios.get(load_checklists_url).then(response => {
                 self.checklists = response.data.checklists;
             }).catch(error => {
-                console.error('Loading checklists error:', error)
+                console.error('Error loading checklists:', error);
             });
         },
-        editChecklist(checklist_id) {
-            window.location.href = `${edit_checklist_url}/${checklist_id}`;
-        },
-        deleteChecklist: function(checklist_id){
+        deleteChecklist: function(checklist_id) {
             let self = this;
-            if(confirm("Delete this checklist?")) {
+            if (confirm("Are you sure you want to delete this checklist?")) {
                 axios.delete(delete_checklist_url + '/' + checklist_id).then(response => {
                     self.checklists = self.checklists.filter(checklist => checklist.id !== checklist_id);
                 }).catch(error => {
-                    console.error('Error deleting checklist:')
+                    console.error('Error deleting checklist:', error);
                 });
             }
+        },
+        updateField: function(checklist_id, field, newValue) {
+            let payload = {
+                checklist_id: checklist_id,
+                field: field,
+                value: newValue
+            };
+            axios.post(update_checklist_url, payload).then(response => {
+                console.log('Field updated successfully');
+            }).catch(error => {
+                console.error('Error updating field:', error);
+            });
         }
     },
-    mounted(){
+    mounted() {
         this.loadChecklists();
         console.log(drawn_coordinates);
     }
