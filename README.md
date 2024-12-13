@@ -5,9 +5,9 @@ Checklist page. Enables users to enter a checklist.
 Stats page. Enables users to see stats and compilations about their own data.
 Location page. Enables users to ask for details about a birding location.
 
-Index page - Glenn
-Checklist page - Josh
-Stats page - Malachi
+Index page - Glenn,
+Checklist page - Josh,
+Stats page - Malachi,
 Location page - Jordan
 
 How to run:
