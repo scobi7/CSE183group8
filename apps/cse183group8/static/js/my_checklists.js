@@ -18,8 +18,8 @@ app.data = {
                 console.error('Loading checklists error:', error)
             });
         },
-        editChecklist: function(checklist_id){
-            window.location.href = edit_checklist_url + '/' + checklist_id;
+        editChecklist(checklist_id) {
+            window.location.href = `${edit_checklist_url}/${checklist_id}`;
         },
         deleteChecklist: function(checklist_id){
             let self = this;

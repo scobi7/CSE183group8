@@ -42,9 +42,9 @@
           <td>{{ checklist.OBSERVATION_DATE }}</td>
           <td>{{ checklist.DURATION_MINUTES }}</td>
           <td>
-            <!-- Edit and Delete Buttons -->
             <div class="buttons">
               <button @click="deleteChecklist(checklist.id)" class="button is-danger is-small">Delete</button>
+              <button @click="editChecklist(checklist.id)" class="button is-link is-small">Edit</button>
             </div>
           </td>
         </tr>
