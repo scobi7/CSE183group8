@@ -282,7 +282,7 @@ def submit_checklist():
 
     sighting = db(db.sightings.COMMON_NAME == species_name).select().first()
     if not sighting:
-        return dict(message="Sighting for the given species not found")
+        return dict(message="The given species has not been sighted in your area")
     
     sampling_event_identifier = sighting.SAMPLING_EVENT_IDENTIFIER
 

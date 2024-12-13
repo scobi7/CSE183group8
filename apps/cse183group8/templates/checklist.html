@@ -31,7 +31,7 @@
     </div>
 
     <div class="search-container">
-        <input class="input search-input" type="text" v-mode="query" @keyup="filterSpecies" placeholder="Search for a species">
+      <input class="input search-input" type="text" v-model="bird_search" @keyup="toggle_search" placeholder="Search species">
     </div>
 
     <div class="table-container">
